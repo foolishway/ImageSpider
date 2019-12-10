@@ -22,10 +22,9 @@ type SearchResult struct {
 	QueryWord string `json:"queryExt"`
 	Data [] SearchItem `json:"data"`
 }
-var dirName string
 var origin string = "http://image.baidu.com/search/acjson?tn=resultjson_com&ipn=rj&ct=201326592&is=&fp=result&cl=2&lm=-1&ie=utf-8&oe=utf-8&adpicid=&st=&z=&ic=&hd=&latest=&copyright=&s=&se=&tab=&width=&height=&face=&istype=&qc=&nc=1&fr=&expermode=&force=&rn=30&gsm=&1575860348327="
 func main() {
-	queryWords := flag.String("queryWord","", "the keyword to search")
+	queryWords := flag.String("kw","", "the keyword to search")
 	flag.Parse()
 	if queryWords == nil {
 		flag.Usage()
@@ -42,12 +41,13 @@ func main() {
 	for j := 0; j < len(qwArray); j++ {
 		wg.Add(1)
 		//create dir
-		dirName = fmt.Sprint("./", qwArray[j])
+		var dirName string = fmt.Sprint("./", qwArray[j])
 		os.Mkdir(dirName, 0x777)
 		os.Chmod(dirName, 0777)
 		go func(n int) {
 			//search 5 pages data
 			for i := 1; i <= 5; i++ {
+				//fmt.Println(qwArray[n])
 				getJsonData(qwArray[n], i * 30)
 			}
 			wg.Done()
@@ -117,12 +117,12 @@ func getJsonData(queryWord string, pageNum int) {
 	for i := 0; i < len(searchResult.Data); i++ {
 		wg.Add(1)
 		//get image and save
-		go getImage(searchResult.Data[i].ImgUrl, wg)
+		go getImage(searchResult.Data[i].ImgUrl, wg, queryWord)
 	}
 	wg.Wait()
 }
 
-func getImage(imgUrl string, wg *sync.WaitGroup) {
+func getImage(imgUrl string, wg *sync.WaitGroup, dir string) {
 	//fmt.Printf("imgUrl:%v", imgUrl)
 	//
 	//fmt.Println()
@@ -133,7 +133,7 @@ func getImage(imgUrl string, wg *sync.WaitGroup) {
 
 	//imgRes, err := http.Get(imgUrl)
 	imgReq, err := http.NewRequest("GET", imgUrl, nil)
-	imgReq.Header.Add("origin", origin)
+	imgReq.Header.Add("referer", origin)
 
 	client := &http.Client{}
 	imgRes, err := client.Do(imgReq)
@@ -155,7 +155,7 @@ func getImage(imgUrl string, wg *sync.WaitGroup) {
 
 	fileName := strings.Split(strings.Split(path, "/")[2], "&")[0]
 	//create image
-	f, err := os.Create(dirName + "/" + fileName + ".jpg")
+	f, err := os.Create(dir + "/" + fileName + ".jpg")
 	if err != nil {
 		log.Println("Create image error:", err)
 		return
