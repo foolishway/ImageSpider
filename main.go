@@ -26,7 +26,7 @@ var origin string = "http://image.baidu.com/search/acjson?tn=resultjson_com&ipn=
 func main() {
 	queryWords := flag.String("kw","", "the keyword to search")
 	flag.Parse()
-	if queryWords == nil {
+	if *queryWords == "" {
 		flag.Usage()
 		return
 	}
