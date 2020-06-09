@@ -42,8 +42,8 @@ func main() {
 		wg.Add(1)
 		//create dir
 		var dirName string = fmt.Sprint("./", qwArray[j])
-		os.Mkdir(dirName, 0x777)
-		os.Chmod(dirName, 0777)
+		os.Mkdir(dirName, 0777)
+		//os.Chmod(dirName, 0777)
 		go func(n int) {
 			//search 5 pages data
 			for i := 1; i <= 5; i++ {
